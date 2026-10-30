@@ -9,6 +9,15 @@ Keep this concise and specific to your implementation.
 - Which operation(s) do you predict may scale poorly?
 - What will you investigate first?
 
+**Initial Baseline**
+Before modifying the supplied implementation, I built and tested the starter project.
+
+- Build succeeded with no errors
+- Tests: 3 passed, 3 skipped, 0 failed.
+- Workload: 2.500 locations, 9.800 connections, 5.000 interations.
+- Execution time: 448 ms.
+- Checksum: 6.267.100
+
 ## 2. Data representation
 
 Describe important changes/retained choices, operations affected, and time/memory trade-offs.
