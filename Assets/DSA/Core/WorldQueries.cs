@@ -24,7 +24,8 @@ namespace FrontierDispatch.Core
             _world = world ?? throw new ArgumentNullException(nameof(world));
         }
 
-        public Location? FindLocationById(int id)
+        /*
+         public Location? FindLocationById(int id)
         {
             for (int i = 0; i < _world.Locations.Count; ++i)
             {
@@ -37,8 +38,14 @@ namespace FrontierDispatch.Core
 
             return null;
         }
+        */
 
-        public IReadOnlyList<Connection> FindOutgoingConnections(int fromLocationId)
+        public Location? FindLocationById(int id)
+        {
+            return _world.FindLocationById(id);
+        }
+
+        /*public IReadOnlyList<Connection> FindOutgoingConnections(int fromLocationId)
         {
             var result = new List<Connection>();
             for (int i = 0; i < _world.Connections.Count; ++i)
@@ -51,6 +58,11 @@ namespace FrontierDispatch.Core
             }
 
             return result;
+        }*/
+        
+        public IReadOnlyList<Connection> FindOutgoingConnections(int fromLocationId)
+        {
+            return _world.FindOutgoingConnections(fromLocationId);
         }
     }
 }

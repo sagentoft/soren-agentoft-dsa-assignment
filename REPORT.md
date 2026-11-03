@@ -73,7 +73,37 @@ would also be useful when implementing pathfinding algorithms such as Dijkstra's
 
 ## 2. Data representation
 
-Describe important changes/retained choices, operations affected, and time/memory trade-offs.
+I replaced the linear searches with dictionary-based lookups in WorldData.
+
+For locations, I used a Dictionary<int, Location>, where the key is the location ID and the value is the corresponding
+Location object.
+
+For outgoing connections, I used a `Dictionary<int, List<Connection>>`, where the key is the originating location ID and
+the value is a list of its outgoing connections. This is effectively an adjacency list.
+
+Both dictionaries are populated once when WorldData is constructed. WorldQUeries then uses these prepared dictionaries
+instead of searching through the original arrays.
+
+The main trade-off is additional memory usage and preparation time when constructing the world. In return, both lookup
+operations have O(1) average time complexity instead of O(n).
+
+### Initial Performance Comparison
+
+| Measurement | Before | After |
+|---|---:|---:|
+| Locations | 2,500 | 2,500 |
+| Connections | 9,800 | 9,800 |
+| Iterations | 5,000 | 5,000 |
+| Execution time | 448 ms | 0.526 ms |
+| Checksum | 6,267,100 | 6,267,100 |
+
+The optimized implementation was approximately 852 times faster in this initial measurement.
+
+The checksum remained identical, suggesting that the changes preserved the expected behavior.
+
+The improvement is likely due to eliminating repeated linear searches, particularly in `FindOutgoingConnections`, which previously examined all 9,800 connections for every query.
+
+These measurements only cover the query workload, not the time required to construct the dictionaries. Further measurements will be needed to evaluate preparation time and memory usage.
 
 ## 3. Algorithms and adaptation
 
