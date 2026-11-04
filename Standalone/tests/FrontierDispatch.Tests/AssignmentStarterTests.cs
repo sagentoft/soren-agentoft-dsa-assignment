@@ -85,7 +85,7 @@ namespace FrontierDispatch.Tests
             Assert.That(queue.Count, Is.Zero);
         }
 
-        [Test, Ignore("Phase 4: enable when implementing Dijkstra route finding.")]
+        [Test]
         public void Dijkstra_StartEqualsGoal_ReturnsZeroCostRoute()
         {
             var finder = new DijkstraRouteFinder(WorldDatasetFactory.CreateSmall());
@@ -93,6 +93,72 @@ namespace FrontierDispatch.Tests
             Assert.That(result.Found, Is.True);
             Assert.That(result.TotalCost, Is.EqualTo(0));
             Assert.That(result.LocationIds, Is.EqualTo(new[] { 0 }));
+        }
+        
+        [Test]
+        public void Dijkstra_FindsCheapestRoute()
+        {
+            var locations = new[]
+            {
+                new Location(0, "A", new WorldPosition(0, 0), "Outpost"),
+                new Location(1, "B", new WorldPosition(1, 0), "Outpost"),
+                new Location(2, "C", new WorldPosition(2, 0), "Outpost")
+            };
+
+            var connections = new[]
+            {
+                new Connection(0, 2, 10),
+                new Connection(0, 1, 3),
+                new Connection(1, 2, 4)
+            };
+
+            var finder = new DijkstraRouteFinder(
+                new WorldData(locations, connections));
+
+            RouteResult result = finder.FindRoute(0, 2);
+
+            Assert.That(result.Found, Is.True);
+            Assert.That(result.TotalCost, Is.EqualTo(7));
+            Assert.That(result.LocationIds, Is.EqualTo(new[] { 0, 1, 2 }));
+        }
+        
+        [Test]
+        public void Dijkstra_UnreachableDestination_ReturnsNotFound()
+        {
+            var locations = new[]
+            {
+                new Location(0, "A", new WorldPosition(0, 0), "Outpost"),
+                new Location(1, "B", new WorldPosition(1, 0), "Outpost")
+            };
+
+            var finder = new DijkstraRouteFinder(
+                new WorldData(locations, Array.Empty<Connection>()));
+
+            RouteResult result = finder.FindRoute(0, 1);
+
+            Assert.That(result.Found, Is.False);
+            Assert.That(result.LocationIds, Is.Empty);
+        }
+        
+        [Test]
+        public void Dijkstra_RespectsConnectionDirection()
+        {
+            var locations = new[]
+            {
+                new Location(0, "A", new WorldPosition(0, 0), "Outpost"),
+                new Location(1, "B", new WorldPosition(1, 0), "Outpost")
+            };
+
+            var connections = new[]
+            {
+                new Connection(0, 1, 5)
+            };
+
+            var finder = new DijkstraRouteFinder(
+                new WorldData(locations, connections));
+
+            Assert.That(finder.FindRoute(0, 1).Found, Is.True);
+            Assert.That(finder.FindRoute(1, 0).Found, Is.False);
         }
 
         [Test, Ignore("Phase 5: enable when implementing bounded reachability.")]

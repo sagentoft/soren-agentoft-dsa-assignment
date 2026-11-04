@@ -102,8 +102,7 @@ namespace FrontierDispatch.Core
                     smallestIndex = leftIndex;
                 }
                 
-                if (rightIndex < _heap.Count &&
-                    _heap[rightIndex].Priority < _heap[smallestIndex].Priority)
+                if (rightIndex < _heap.Count && _heap[rightIndex].Priority < _heap[smallestIndex].Priority)
                 {
                     smallestIndex = rightIndex;
                 }

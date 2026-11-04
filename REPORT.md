@@ -109,9 +109,34 @@ measurements will be needed to evaluate preparation time and memory usage.
 
 ## 3. Algorithms and adaptation
 
-Explain your route finder at a useful high level and how the travel-budget query adapts the same ideas.
+### Dijkstra's Algorithm
 
-## 4. Complexity
+I implemented Dijkstra's algorithm in `DijkstraRouteFinder.cs` to find the route with the lowest total travel cost between two locations.
+
+The algorithm uses a dictionary to store the lowest known cumulative cost for each location, another dictionary to track the previous location along
+ the cheapest known route, and my binary min-heap priority queue to determine which location to explore next.
+
+The starting location is assigned a cost of 0 and added to the priority queue.
+
+The algorithm repeatedly removes the location with the lowest cumulative cost and examines its outgoing connections using the dictionary-based
+ representation in `WorldData`.
+
+For each connection, it calculates the cumulative cost of reaching the destination through the current location. If this is cheaper than the previously
+ known cost, the distance and previous location are updated, and the destination is added to the priority queue.
+
+Because my priority queue does not support updating priorities directly, a location can be added multiple times when a cheaper route is discovered.
+ A `HashSet` tracks which locations have already been explored so that they are not processed again.
+
+When the destination is reached, the algorithm reconstructs the route by following the previous-location dictionary backwards from the destination
+ to the start, then reversing the resulting list.
+
+If the destination cannot be reached, the algorithm returns an unsuccessful `RouteResult`.
+
+The algorithm relies on nonnegative connection costs, which are enforced by the `Connection` constructor.
+
+### Bounded Reachability
+
+To be completed in Phase 5.
 
 ## 4. Complexity
 
@@ -121,7 +146,7 @@ Explain your route finder at a useful high level and how the travel-budget query
 | Get outgoing connections | Dictionary of connection lists | O(1) average | Retrieves the list of outgoing connections directly using the originating location ID. |
 | Priority queue enqueue | Binary min-heap | O(log n) | Adds the entry and sifts it upwards until the heap order is correct. |
 | Priority queue dequeue-min | Binary min-heap | O(log n) | Replaces the root with the last entry and sifts it downwards. |
-| Route finding | Not implemented yet | — | To be completed in Phase 4. |
+| Route finding | Dijkstra with binary min-heap and adjacency lists | O((V + E) log V) | Explores outgoing connections and uses the priority queue to process locations in order of cumulative cost. |
 
 ## 5. Correctness and testing
 
@@ -137,6 +162,21 @@ The tests verify that:
 
 The heap uses sift-up when inserting entries nas sift-down when removing the minimum entry. Both operations preserve the property that a parent cannot have a higher
 priortiy than its children.
+
+### Dijkstra Testing
+
+I enabled the supplied Phase 4 test and added three additional tests.
+
+The tests verify that:
+
+- Starting and ending at the same location produces a route containing only that location, with a total cost of 0.
+- The algorithm chooses the route with the lowest cumulative travel cost, even when a more expensive direct connection exists.
+- Unreachable destinations return an unsuccessful result.
+- Connections are directional, so a connection from A to B does not automatically allow travel from B to A.
+
+I constructed small test worlds with known connection costs so that the expected results could be verified.
+
+After Phase 4, the test results were **11 passed, 1 skipped, 0 failed**. The remaining skipped test belongs to Phase 5.
 
 
 ## 6. Performance investigation
