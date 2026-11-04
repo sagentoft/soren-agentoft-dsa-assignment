@@ -31,7 +31,25 @@ namespace FrontierDispatch.Core
         public void Enqueue(T item, int priority)
         {
             // TODO: insert the new entry and restore the min-heap invariant.
-            throw new NotImplementedException();
+            _heap.Add(new Entry(item, priority));
+            
+            int currentIndex = _heap.Count - 1;
+
+            while (currentIndex > 0)
+            {
+                int parentIndex = (currentIndex - 1) / 2;
+                
+                if (_heap[currentIndex].Priority >= _heap[parentIndex].Priority)
+                {
+                    break;
+                }
+
+                Entry temp = _heap[currentIndex];
+                _heap[currentIndex] = _heap[parentIndex];
+                _heap[parentIndex] = temp;
+                
+                currentIndex = parentIndex;
+            }
         }
 
         /// <summary>
@@ -43,7 +61,12 @@ namespace FrontierDispatch.Core
         public T Peek()
         {
             // TODO: return the current minimum without changing the queue.
-            throw new NotImplementedException();
+            if (_heap.Count == 0)
+            {
+                throw new InvalidOperationException("The queue is empty.");
+            }
+            
+            return _heap[0].Item;
         }
 
         /// <summary>
@@ -55,7 +78,49 @@ namespace FrontierDispatch.Core
         public T Dequeue()
         {
             // TODO: remove the minimum item and restore the min-heap invariant.
-            throw new NotImplementedException();
+            if (_heap.Count == 0)
+            {
+                throw new InvalidOperationException("The queue is empty.");
+            }
+            
+            T minItem = _heap[0].Item;
+            int lastIndex = _heap.Count - 1;
+            
+            _heap[0] = _heap[lastIndex];
+            _heap.RemoveAt(lastIndex);
+
+            int currentIndex = 0;
+
+            while (true)
+            {
+                int leftIndex = 2 * currentIndex + 1;
+                int rightIndex = 2 * currentIndex + 2;
+                int smallestIndex = currentIndex;
+
+                if (leftIndex < _heap.Count && _heap[leftIndex].Priority < _heap[smallestIndex].Priority)
+                {
+                    smallestIndex = leftIndex;
+                }
+                
+                if (rightIndex < _heap.Count &&
+                    _heap[rightIndex].Priority < _heap[smallestIndex].Priority)
+                {
+                    smallestIndex = rightIndex;
+                }
+                
+                if (smallestIndex == currentIndex)
+                {
+                    break;
+                }
+                
+                Entry temp = _heap[currentIndex];
+                _heap[currentIndex] = _heap[smallestIndex];
+                _heap[smallestIndex] = temp;
+                
+                currentIndex = smallestIndex;
+            }
+
+            return minItem;
         }
 
         /// <summary>

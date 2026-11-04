@@ -99,11 +99,13 @@ operations have O(1) average time complexity instead of O(n).
 
 The optimized implementation was approximately 852 times faster in this initial measurement.
 
-The checksum remained identical, suggesting that the changes preserved the expected behavior.
+The checksum remained idential, suggesting that the changes preserved the expected behavior.
 
-The improvement is likely due to eliminating repeated linear searches, particularly in `FindOutgoingConnections`, which previously examined all 9,800 connections for every query.
+The improvement is likely due to eliminating repeated linear searches, particularly in FindOutgoingConnections,
+which previously examined all 9,800 connetions for every query.
 
-These measurements only cover the query workload, not the time required to construct the dictionaries. Further measurements will be needed to evaluate preparation time and memory usage.
+These measurements only cover the query workload, not the time required to construct the dictionaries. Further
+measurements will be needed to evaluate preparation time and memory usage.
 
 ## 3. Algorithms and adaptation
 
@@ -111,17 +113,31 @@ Explain your route finder at a useful high level and how the travel-budget query
 
 ## 4. Complexity
 
+## 4. Complexity
+
 | Operation | Your representation/algorithm | Complexity | Short explanation |
 | --- | --- | --- | --- |
-| Find location by ID | | | |
-| Get outgoing connections | | | |
-| Priority queue enqueue | | | |
-| Priority queue dequeue-min | | | |
-| Route finding | | | |
+| Find location by ID | Dictionary lookup | O(1) average | Uses the location ID as a dictionary key instead of searching the location array. |
+| Get outgoing connections | Dictionary of connection lists | O(1) average | Retrieves the list of outgoing connections directly using the originating location ID. |
+| Priority queue enqueue | Binary min-heap | O(log n) | Adds the entry and sifts it upwards until the heap order is correct. |
+| Priority queue dequeue-min | Binary min-heap | O(log n) | Replaces the root with the last entry and sifts it downwards. |
+| Route finding | Not implemented yet | — | To be completed in Phase 4. |
 
 ## 5. Correctness and testing
 
-Important tests/edge cases and what they demonstrate.
+After implementing the binary min-heap priority queue, I enabled the provided Phase 3 test and added additional tests.
+
+The tests verify that:
+
+- Items are removed in ascending priority order.
+- Peek returns the minimum-priority item without removing it.
+- Count updates correctly after inseration and removal.
+- Duplicate priorites are handled without losing items.
+- A queue containing only one item works correctly.
+
+The heap uses sift-up when inserting entries nas sift-down when removing the minimum entry. Both operations preserve the property that a parent cannot have a higher
+priortiy than its children.
+
 
 ## 6. Performance investigation
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using FrontierDispatch.Core;
 
@@ -16,7 +17,7 @@ namespace FrontierDispatch.Tests
         // These tests document later assignment contracts without making the
         // untouched baseline red. Remove Ignore when you reach the named phase.
 
-        [Test, Ignore("Phase 3: enable when implementing the binary min-heap priority queue.")]
+        [Test]
         public void PriorityQueue_EnqueueAndDequeue_ReturnsLowestPriorityFirst()
         {
             var queue = new MinPriorityQueue<string>();
@@ -24,6 +25,64 @@ namespace FrontierDispatch.Tests
             queue.Enqueue("cheap", 2);
             queue.Enqueue("medium", 5);
             Assert.That(queue.Dequeue(), Is.EqualTo("cheap"));
+            Assert.That(queue.Dequeue(), Is.EqualTo("medium"));
+            Assert.That(queue.Dequeue(), Is.EqualTo("expensive"));
+        }
+        
+        [Test]
+        public void PriorityQueue_Peek_DoesNotRemoveItem()
+        {
+            var queue = new MinPriorityQueue<string>();
+
+            queue.Enqueue("expensive", 10);
+            queue.Enqueue("cheap", 2);
+
+            Assert.That(queue.Count, Is.EqualTo(2));
+            Assert.That(queue.Peek(), Is.EqualTo("cheap"));
+            Assert.That(queue.Count, Is.EqualTo(2));
+
+            Assert.That(queue.Dequeue(), Is.EqualTo("cheap"));
+            Assert.That(queue.Count, Is.EqualTo(1));
+        }
+        
+        [Test]
+        public void PriorityQueue_EmptyQueue_ThrowsException()
+        {
+            var queue = new MinPriorityQueue<string>();
+
+            Assert.Throws<InvalidOperationException>(() => queue.Peek());
+            Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
+        }
+        
+        [Test]
+        public void PriorityQueue_DuplicatePriorities_HandlesAllItems()
+        {
+            var queue = new MinPriorityQueue<string>();
+
+            queue.Enqueue("first", 5);
+            queue.Enqueue("second", 5);
+            queue.Enqueue("third", 5);
+
+            var results = new HashSet<string>
+            {
+                queue.Dequeue(),
+                queue.Dequeue(),
+                queue.Dequeue()
+            };
+
+            Assert.That(results, Is.EquivalentTo(new[]
+            {
+                "first",
+                "second",
+                "third"
+            }));
+
+            Assert.That(queue.Count, Is.Zero);
+
+            queue.Enqueue("alone", 1);
+
+            Assert.That(queue.Dequeue(), Is.EqualTo("alone"));
+            Assert.That(queue.Count, Is.Zero);
         }
 
         [Test, Ignore("Phase 4: enable when implementing Dijkstra route finding.")]
