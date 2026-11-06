@@ -34,15 +34,13 @@ namespace FrontierDispatch.Core
         /// </summary>
         public RouteResult FindRoute(int startLocationId, int goalLocationId)
         {
-            // TODO: implement Dijkstra using your prepared world representation
             var distances = new Dictionary<int, int>();
             var previous = new Dictionary<int, int>();
             var queue = new MinPriorityQueue<int>();
             var visited = new HashSet<int>();
 
             int expandedCount = 0;
-            
-            // validate the requested locations
+
             if (_world.FindLocationById(startLocationId) == null ||
                 _world.FindLocationById(goalLocationId) == null)
             {
@@ -55,49 +53,62 @@ namespace FrontierDispatch.Core
             while (queue.Count > 0)
             {
                 int currentId = queue.Dequeue();
-                
-                // Ignore locations that have already been expanded
-                if (visited.Contains(currentId))
+
+                if (!visited.Add(currentId))
                 {
                     continue;
                 }
 
-                visited.Add(currentId);
                 expandedCount++;
 
                 if (currentId == goalLocationId)
                 {
-                    var path = new List<int>();
-                    int step = goalLocationId;
-                    
-                    path.Add(step);
+                    List<int> path = ReconstructRoute(
+                        startLocationId, goalLocationId, previous);
 
-                    while (step != startLocationId)
-                    {
-                        step = previous[step];
-                        path.Add(step);
-                    }
-                    
-                    path.Reverse();
-                    
                     return new RouteResult(true, path, distances[goalLocationId], expandedCount);
                 }
 
-                foreach (Connection connection in _world.FindOutgoingConnections(currentId))
-                {
-                    int neighborId = connection.ToLocationId;
-                    int newCost = distances[currentId] + connection.TravelCost;
+                ExploreConnections(currentId, distances, previous, queue);
+            }
 
-                    if (!distances.TryGetValue(neighborId, out int knownCost) || newCost < knownCost)
-                    {
-                        distances[neighborId] = newCost;
-                        previous[neighborId] = currentId;
-                        queue.Enqueue(neighborId, newCost);
-                    }
+            return new RouteResult(false, Array.Empty<int>(), 0, expandedCount);
+        }
+        
+        private void ExploreConnections(int currentId, Dictionary<int, int> distances,
+            Dictionary<int, int> previous, MinPriorityQueue<int> queue)
+        {
+            foreach (Connection connection in _world.FindOutgoingConnections(currentId))
+            {
+                int neighborId = connection.ToLocationId;
+                int newCost = distances[currentId] + connection.TravelCost;
+
+                if (!distances.TryGetValue(neighborId, out int knownCost) || newCost < knownCost)
+                {
+                    distances[neighborId] = newCost;
+                    previous[neighborId] = currentId;
+                    queue.Enqueue(neighborId, newCost);
                 }
             }
-            
-            return new RouteResult(false, Array.Empty<int>(), 0, expandedCount);
+        }
+        
+        private static List<int> ReconstructRoute(int startLocationId, int goalLocationId,
+            Dictionary<int, int> previous)
+        {
+            var path = new List<int>();
+            int currentId = goalLocationId;
+
+            path.Add(currentId);
+
+            while (currentId != startLocationId)
+            {
+                currentId = previous[currentId];
+                path.Add(currentId);
+            }
+
+            path.Reverse();
+
+            return path;
         }
     }
 }
