@@ -136,7 +136,21 @@ The algorithm relies on nonnegative connection costs, which are enforced by the 
 
 ### Bounded Reachability
 
-To be completed in Phase 5.
+I implemented ReachabiliyQuery by adapting the Dijkstra algorithm from Phase 4.
+
+Instead of finding the cheapest route to one specific location, the algorithm finds all locations that can be reached from a starting location without
+exceeding a given travel-cost budget.
+
+It uses a dictionary to track the lowest known cost of each location, a binary min-heap priority queue to explore locations in order of cumulative cost,
+and a HashSet to avoid exploring the same location multiple times.
+
+For each outgoing connection, the algorithm calculates the new cumulative cost. if this exceeds the budget, the connection is ignored. Otherwise, the
+destination is added to the queue if it has not been discovered before of if a cheaper route has been found. 
+
+Unlike the route finder, this algorithm does not need to track previous locations or reconstruct a path, since it only returns the reachable location
+IDs and their minimum travel costs.
+
+The result is a dictionary containing the reachable locations and their cheapest known travel costs.
 
 ## 4. Complexity
 
@@ -147,6 +161,7 @@ To be completed in Phase 5.
 | Priority queue enqueue | Binary min-heap | O(log n) | Adds the entry and sifts it upwards until the heap order is correct. |
 | Priority queue dequeue-min | Binary min-heap | O(log n) | Replaces the root with the last entry and sifts it downwards. |
 | Route finding | Dijkstra with binary min-heap and adjacency lists | O((V + E) log V) | Explores outgoing connections and uses the priority queue to process locations in order of cumulative cost. |
+| Bounded Reachability| Dijkstra with min-heap and adjecency lists | O((V + E) log V) | Worst-case is similar to Dijkstra because the algorithm uses the same graph traversal and priority queue. However, the budget can reduce the amount of the graph that needs to be explored. |
 
 ## 5. Correctness and testing
 
@@ -163,7 +178,7 @@ The tests verify that:
 The heap uses sift-up when inserting entries nas sift-down when removing the minimum entry. Both operations preserve the property that a parent cannot have a higher
 priortiy than its children.
 
-### Dijkstra Testing
+### Dijkstra Tests
 
 I enabled the supplied Phase 4 test and added three additional tests.
 
@@ -177,6 +192,21 @@ The tests verify that:
 I constructed small test worlds with known connection costs so that the expected results could be verified.
 
 After Phase 4, the test results were **11 passed, 1 skipped, 0 failed**. The remaining skipped test belongs to Phase 5.
+
+### Bounded Reachability Tests
+
+I tested the bounded reachability algorithm using the provided `WorldDatasetFactory.CreateSmall()` dataset and small manually constructed graphs.
+
+The tests cover the following cases:
+
+- A budget of zero includes the starting location at cost zero.
+- A location with a travel cost exactly equal to the budget is included.
+- Locations requiring more than the available budget are excluded.
+- When multiple routes lead to the same location, the algorithm returns the lowest travel cost.
+- An invalid starting location returns an empty result.
+- A negative travel-cost budget returns an empty result.
+
+For tests requiring specific connection costs, I created a small `CreateWorld()` helper to construct predictable graphs. This allowed me to verify the expected results without depending on the generated dataset's layout and connection costs.
 
 
 ## 6. Performance investigation
