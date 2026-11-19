@@ -4,7 +4,7 @@ Keep this concise and specific to your implementation.
 
 ## 1. Initial analysis
 
-**Initial Baseline Results**
+### Initial Baseline Results
 
 Before modifying the supplied implementation, I built and tested the starter project.
 
@@ -73,7 +73,7 @@ would also be useful when implementing pathfinding algorithms such as Dijkstra's
 
 ## 2. Data representation
 
-I replaced the linear searches with dictionary-based lookups in WorldData.
+I replaced the linear searches with dictionary-based lookups in `WorldData`.
 
 For locations, I used a `Dictionary<int, Location>`, where the key is the location ID and the value is the corresponding
 Location object.
@@ -81,11 +81,11 @@ Location object.
 For outgoing connections, I used a `Dictionary<int, List<Connection>>`, where the key is the originating location ID and
 the value is a list of its outgoing connections. This is effectively an adjacency list.
 
-Both dictionaries are populated once when WorldData is constructed. WorldQUeries then uses these prepared dictionaries
+Both dictionaries are populated once when WorldData is constructed. WorldQueries then uses these prepared dictionaries
 instead of searching through the original arrays.
 
 The main trade-off is additional memory usage and preparation time when constructing the world. In return, both lookup
-operations have O(1) average time complexity instead of O(n).
+operations have **O(1)** average time complexity instead of **O(n)**.
 
 I retained the original location and connection arrays, since they are still useful for storing and enumerating the 
 complete world data. The dictionaries provide additional indexes for efficient queries rather than replacing the original collections entirely.
@@ -106,7 +106,7 @@ benchmarking procedure as the later comparison in Section 6. The controlled meas
 
 The checksum remained identical, suggesting that the changes preserved the expected behavior.
 
-The improvement is likely due to eliminating repeated linear searches, particularly in FindOutgoingConnections,
+The improvement is likely due to eliminating repeated linear searches, particularly in `FindOutgoingConnections`,
 which previously examined all 9,800 connections for every query.
 
 These measurements only cover the query workload, not the time required to construct the dictionaries. Further
@@ -150,8 +150,8 @@ exceeding a given travel-cost budget.
 It uses a dictionary to track the lowest known cost of each location, a binary min-heap priority queue to explore locations in order of cumulative cost,
 and a HashSet to avoid exploring the same location multiple times.
 
-For each outgoing connection, the algorithm calculates the new cumulative cost. if this exceeds the budget, the connection is ignored. Otherwise, the
-destination is added to the queue if it has not been discovered before of if a cheaper route has been found. 
+For each outgoing connection, the algorithm calculates the new cumulative cost. If this exceeds the budget, the connection is ignored. Otherwise, the
+destination is added to the queue if it has not been discovered before or if a cheaper route has been found. 
 
 Unlike the route finder, this algorithm does not need to track previous locations or reconstruct a path, since it only returns the reachable location
 IDs and their minimum travel costs.
@@ -264,7 +264,7 @@ Each dataset was constructed 20 times in Release mode.
 
 From the medium to the large dataset, the number of locations increased by a factor of 16, while allocated memory increased by approximately 16.8 times.
 
-This suggests that memory allocation grows roughly proportionally to the size of the world, which is consistent with the expected space complexity of the representation.
+This suggests that memory allocation grows roughly proportionally to the size of the world, which is consistent with the expected complexity of the representation.
 
 Construction time increased by approximately 31 times over the same interval. This is greater than the increase in world size, although the measurements alone do not establish the cause.
 
