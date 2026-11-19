@@ -61,6 +61,25 @@ namespace FrontierDispatch.Tests
             Assert.That(result.Count, Is.EqualTo(3));
             Assert.That(result[2], Is.EqualTo(7));
         }
+        
+        
+        [Test]
+        public void Reachability_ZeroBudgetIncludesLocationsReachableThroughZeroCostConnections()
+        {
+            var world = CreateWorld(4, new Connection(0, 1, 0),
+                new Connection(1, 2, 0), new Connection(2, 3, 1));
+            
+            var query = new ReachabilityQuery(world);
+
+            var result = query.FindReachable(0, 0);
+
+            Assert.That(result.Count, Is.EqualTo(3));
+            Assert.That(result[0], Is.EqualTo(0));
+            Assert.That(result[1], Is.EqualTo(0));
+            Assert.That(result[2], Is.EqualTo(0));
+            Assert.That(result.ContainsKey(3), Is.False);
+        }
+
 
         private static WorldData CreateWorld(int locationCount, params Connection[] connections)
         {
