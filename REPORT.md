@@ -128,9 +128,9 @@ Because my priority queue does not support updating priorities directly, a locat
  A `HashSet` tracks which locations have already been explored so that they are not processed again.
 
 When the destination is reached, the algorithm reconstructs the route by following the previous-location dictionary backwards from the destination
- to the start, then reversing the resulting list.
+to the start, then reversing the resulting list.
 
-If the destination cannot be reached, the algorithm returns an unsuccessful `RouteResult`.
+If the destination cannot be reached, the algorithm returns a RouteResult with Found = false, an empty route, and TotalCost = 0. The total cost is not meaningful when no route exists.
 
 The algorithm relies on nonnegative connection costs, which are enforced by the `Connection` constructor.
 
@@ -206,16 +206,74 @@ The tests cover the following cases:
 - An invalid starting location returns an empty result.
 - A negative travel-cost budget returns an empty result.
 
-For tests requiring specific connection costs, I created a small `CreateWorld()` helper to construct predictable graphs. This allowed me to verify the expected results without depending on the generated dataset's layout and connection costs.
+For tests requiring specific connection costs, I created a small `CreateWorld()` helper to construct predictable graphs. This allowed me to verify the expected results
+ without depending on the generated dataset's layout and connection costs.
 
+After Phase 5, the test results were **17 passed, 0 skipped, 0 failed**.
 
 ## 6. Performance investigation
 
-Record reproducible before/after measurements for loading/preparation, repeated runtime work, and relevant allocation behavior. Explain what changed and why.
+### Original vs. Optimized Query Performance
+
+To compare the implementations under similar conditions, I recreated the original linear-search behavior in a separate benchmark method without modifying the optimized implementation.
+
+Both versions were measured in Release mode using the same medium-sized world, 5,000 query iterations per run, and 20 runs.
+
+| Measurement | Original | Optimized |
+|---|---:|---:|
+| Average execution time | 74.5024 ms | 0.3886 ms |
+| Average allocated memory | 760,040 bytes | 40 bytes |
+| Checksum | 6,267,100 | 6,267,100 |
+
+The optimized implementation was approximately 192 times faster in this comparison.
+
+The original implementation allocated substantially more memory because `FindOutgoingConnections` created a new list for every query.
+The optimized version retrieves existing lists from the dictionary, avoiding these repeated allocations.
+
+The remaining 40 bytes allocated in the optimized benchmark are consistent with the `Stopwatch` object created during measurement.
+
+Both implementations produced the same checksum, suggesting that the optimized queries preserve the expected behavior.
+
+The original baseline measurement of 448 ms was considerably slower than the newer measurement of 74.5024 ms. The measurements were performed
+under different conditions, so I used the matched Release-mode comparison for evaluating the final performance improvement.
+
+### World Size Scaling
+
+I also investigated how world construction performance changes as the dataset grows, using the deterministic worlds provided by `WorldDatasetFactory`.
+
+Each dataset was constructed 20 times in Release mode.
+
+| Dataset | Locations | Connections | Average construction time | Average allocated memory |
+|---|---:|---:|---:|---:|
+| Small | 25 | 80 | 0.011 ms | 15.84 KiB |
+| Medium | 2,500 | 9,800 | 1.073 ms | 1,703.48 KiB |
+| Large | 40,000 | 159,200 | 33.216 ms | 28,575.66 KiB |
+
+From the medium to the large dataset, the number of locations increased by a factor of 16, while allocated memory increased by approximately 16.8 times.
+
+This suggests that memory allocation grows roughly proportionally to the size of the world, which is consistent with the expected space complexity of the representation.
+
+Construction time increased by approximately 31 times over the same interval. This is greater than the increase in world size, although the measurements alone do not establish the cause.
+
+Possible contributing factors include memory allocation overhead, garbage collection, and CPU cache behavior.
+
+These measurements include generating locations and connections as well as constructing the dictionaries, so they do not isolate the preparation cost of the optimized representation.
 
 ## 7. Development reflection
 
-Describe one bug, wrong assumption, failed approach, or surprising result and how you investigated it.
+One surprising result I encountered was when I first benchmarked the optimized dictionary-based lookups.
+
+The original implementation took approximately 448 ms to complete the baseline workload, but after implementing the dictionaries, the benchmark reported an execution time of 0 ms.
+
+Initially, this made it difficult to determine how much the performance had actually improved.
+
+I investigated the measurement and realized that the benchmark used `Stopwatch.ElapsedMilliseconds`, which reports elapsed time as a whole number of milliseconds. Since the optimized workload completed in less than one millisecond, the result was rounded down to zero.
+
+I changed the measurement to use `Stopwatch.Elapsed.TotalMilliseconds`, which provides a fractional millisecond value.
+
+This allowed me to measure the optimized workload more accurately, with an initial result of approximately 0.526 ms.
+
+The experience taught me that benchmarking requires appropriate measurement precision, particularly when working with very fast operations. A reported execution time of zero does not necessarily mean that no time was spent executing the code.
 
 ## 8. Tools and AI assistance
 
