@@ -15,12 +15,6 @@ if (args.Length > 0 && args[0] == "--performance")
     return;
 }
 
-if (args.Length > 0 && args[0] == "--original")
-{
-    RunOriginalPerformance();
-    return;
-}
-
 if (args.Length > 0 && args[0] == "--scaling")
 {
     RunScalingInvestigation();
@@ -164,90 +158,6 @@ static void RunPerformanceInvestigation()
     Console.WriteLine($"Iterations per run: {iterations}");
     Console.WriteLine($"Average: {totalQueryMilliseconds / queryRuns:F4} ms");
     Console.WriteLine($"Average allocated: {totalQueryAllocatedBytes / queryRuns:F2} bytes");
-    Console.WriteLine($"Checksum: {checksum}");
-}
-
-
-static void RunOriginalPerformance()
-{
-    WorldData world = WorldDatasetFactory.CreateMedium();
-
-    const int runs = 20;
-    const int iterations = 5000;
-
-    // Pre-warmup
-    for (int i = 0; i < iterations; i++)
-    {
-        int id = (i * 997) % world.Locations.Count;
-
-        foreach (Location location in world.Locations)
-        {
-            if (location.Id == id)
-                break;
-        }
-
-        var outgoing = new List<Connection>();
-
-        foreach (Connection connection in world.Connections)
-        {
-            if (connection.FromLocationId == id)
-                outgoing.Add(connection);
-        }
-    }
-
-    double totalMilliseconds = 0;
-    long totalAllocatedBytes = 0;
-    int checksum = 0;
-
-    for (int run = 0; run < runs; run++)
-    {
-        checksum = 0;
-
-        long before = GC.GetAllocatedBytesForCurrentThread();
-        var sw = Stopwatch.StartNew();
-
-        for (int i = 0; i < iterations; i++)
-        {
-            int id = (i * 997) % world.Locations.Count;
-
-            // Original linear location lookup.
-            Location? found = null;
-
-            foreach (Location location in world.Locations)
-            {
-                if (location.Id == id)
-                {
-                    found = location;
-                    break;
-                }
-            }
-
-            checksum += found?.Id ?? 0;
-
-            // Original linear outgoing-connection lookup.
-            var outgoing = new List<Connection>();
-
-            foreach (Connection connection in world.Connections)
-            {
-                if (connection.FromLocationId == id)
-                    outgoing.Add(connection);
-            }
-
-            checksum += outgoing.Count;
-        }
-
-        sw.Stop();
-        long after = GC.GetAllocatedBytesForCurrentThread();
-
-        totalMilliseconds += sw.Elapsed.TotalMilliseconds;
-        totalAllocatedBytes += after - before;
-    }
-
-    Console.WriteLine("Original linear-search performance");
-    Console.WriteLine($"Runs: {runs}");
-    Console.WriteLine($"Iterations per run: {iterations}");
-    Console.WriteLine($"Average: {totalMilliseconds / runs:F4} ms");
-    Console.WriteLine($"Average allocated: {totalAllocatedBytes / runs:F2} bytes");
     Console.WriteLine($"Checksum: {checksum}");
 }
 
