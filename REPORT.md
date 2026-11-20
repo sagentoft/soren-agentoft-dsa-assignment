@@ -10,7 +10,7 @@ Before modifying the supplied implementation, I built and tested the starter pro
 
 - Build succeeded with no errors
 - Tests: 3 passed, 3 skipped, 0 failed.
-- Workload: 2,500 locations, 9,800 connections, 5,000 interations.
+- Workload: 2,500 locations, 9,800 connections, 5,000 iterations.
 - Execution time: 448 ms.
 - Checksum: 6,267,100
 
@@ -101,8 +101,6 @@ complete world data. The dictionaries provide additional indexes for efficient q
 | Checksum | 6,267,100 | 6,267,100 |
 
 The optimized implementation was approximately 852 times faster in this initial measurement.
-These initial measurements were useful for identifying the scale of the improvement, but they were not collected using the same repeated 
-benchmarking procedure as the later comparison in Section 6. The controlled measurements provide a more reliable estimate of the speedup.
 
 The checksum remained identical, suggesting that the changes preserved the expected behavior.
 
@@ -111,6 +109,9 @@ which previously examined all 9,800 connections for every query.
 
 These measurements only cover the query workload, not the time required to construct the dictionaries. Further
 measurements will be needed to evaluate preparation time and memory usage.
+
+**These initial measurements were useful for identifying the scale of the improvement, but they were not collected using the same repeated 
+benchmarking procedure as the later comparison in Section 6. The controlled measurements provide a more reliable estimate of the speedup.**
 
 ## 3. Algorithms and adaptation
 
@@ -183,8 +184,7 @@ The tests verify that:
 - Duplicate priorities are handled without losing items.
 - A queue containing only one item works correctly.
 
-The heap uses sift-up when inserting entries and sift-down when removing the minimum entry. Both operations preserve the property that a parent cannot have a higher
-priority than its children.
+The heap uses sift-up when inserting entries and sift-down when removing the minimum entry. Both operations preserve the property (invariant?) that a parent cannot have a higher priority than its children.
 
 ### Dijkstra Tests
 
