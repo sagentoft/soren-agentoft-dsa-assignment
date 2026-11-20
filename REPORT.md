@@ -142,7 +142,7 @@ The algorithm relies on nonnegative connection costs, which are enforced by the 
 
 ### Bounded Reachability
 
-I implemented ReachabiliyQuery by adapting the Dijkstra algorithm from Phase 4.
+I implemented `ReachabilityQuery` by adapting the Dijkstra algorithm from Phase 4.
 
 Instead of finding the cheapest route to one specific location, the algorithm finds all locations that can be reached from a starting location without
 exceeding a given travel-cost budget.
@@ -165,7 +165,7 @@ A budget of zero still includes the starting location and any other locations re
 | Operation | Your representation/algorithm | Complexity | Short explanation |
 | --- | --- | --- | --- |
 | Find location by ID | Dictionary lookup | O(1) average | Uses the location ID as a dictionary key instead of searching the location array. |
-| Get outgoing connections | Dictionary of connection lists | O(1) average lookup, O(n) to iterate | Retrieves the adjacency list in O(1) average time. Iterating its d outgoing connections requires an additional O(n) time. |
+| Get outgoing connections | Dictionary of connection lists | O(1) average lookup, O(n) to iterate | Retrieves the adjacency list in O(1) average time. Iterating over the list takes O(n), where n is the number of outgoing connections in that list. |
 | Priority queue enqueue | Binary min-heap | O(log n) | Adds the entry and sifts it upwards until the heap order is correct. |
 | Priority queue dequeue-min | Binary min-heap | O(log n) | Replaces the root with the last entry and sifts it downwards. |
 | Route finding | Dijkstra with binary min-heap and adjacency lists | O((V + E) log V) | Explores outgoing connections and uses the priority queue to process locations in order of cumulative cost. |
@@ -179,12 +179,12 @@ The tests verify that:
 
 - Items are removed in ascending priority order.
 - Peek returns the minimum-priority item without removing it.
-- Count updates correctly after inseration and removal.
-- Duplicate priorites are handled without losing items.
+- Count updates correctly after insertion and removal.
+- Duplicate priorities are handled without losing items.
 - A queue containing only one item works correctly.
 
-The heap uses sift-up when inserting entries nas sift-down when removing the minimum entry. Both operations preserve the property that a parent cannot have a higher
-priortiy than its children.
+The heap uses sift-up when inserting entries and sift-down when removing the minimum entry. Both operations preserve the property that a parent cannot have a higher
+priority than its children.
 
 ### Dijkstra Tests
 
@@ -193,7 +193,7 @@ I enabled the supplied Phase 4 test and added three additional tests.
 The tests verify that:
 
 - Starting and ending at the same location produces a route containing only that location, with a total cost of 0.
-- The algorithm chooses the route with the lowest cumulative travel cost, even when a more expensive direct connection exists.
+- The algorithm chooses the cheapest route even when it contains more connections than a more expensive alternative.
 - Unreachable destinations return an unsuccessful result.
 - Connections are directional, so a connection from A to B does not automatically allow travel from B to A.
 
@@ -226,7 +226,9 @@ After Phase 5, the test results were **18 passed, 0 skipped, 0 failed**.
 
 To compare the original and optimized implementations, I used a separate Git worktree containing the original starter code.
 
-I added the same performance measurements to both versions and ran them in Release mode, using 20 repetitions and the same medium-sized world containing 2,500 locations and 9,800 connections.
+I added the same performance measurements to both versions and ran them in Release mode, using 20 repetitions and the same medium-sized world containing 2,500 locations and 9,800 connections. 
+
+The repeated query workload performed 5,000 iterations per run, calling both location lookup and outgoing connection lookup.
 
 | Measurement | Original | Optimized |
 |---|---:|---:|

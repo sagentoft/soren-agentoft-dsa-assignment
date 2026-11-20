@@ -112,8 +112,7 @@ namespace FrontierDispatch.Tests
                 new Connection(1, 2, 4)
             };
 
-            var finder = new DijkstraRouteFinder(
-                new WorldData(locations, connections));
+            var finder = new DijkstraRouteFinder(new WorldData(locations, connections));
 
             RouteResult result = finder.FindRoute(0, 2);
 
